@@ -30,7 +30,7 @@ import { AdvancedCompare } from './components/AdvancedCompare';
 import { ComparisonReport } from './components/ComparisonReport';
 import { SingleAnalysisReport } from './components/SingleAnalysisReport';
 import { SEO, SEOPresets } from './components/SEO';
-import { LandingHero } from './components/LandingHero';
+// import { LandingHero } from './components/LandingHero';
 import { usePageTracking, Analytics } from './hooks/useAnalytics';
 
 const theme = createTheme({
@@ -164,9 +164,9 @@ function AppContent() {
     setDiffResult(result);
 
     // Track comparison completion
-    const build1Size = result.build1.sections.reduce((sum, s) => sum + s.size, 0);
-    const build2Size = result.build2.sections.reduce((sum, s) => sum + s.size, 0);
-    const sizeDiff = build2Size - build1Size;
+    const build1Size = result.summary.totalSizeV1;
+    const build2Size = result.summary.totalSizeV2;
+    const sizeDiff = result.summary.totalSizeDiff;
     Analytics.trackComparison(build1Size, build2Size, sizeDiff);
   };
 
