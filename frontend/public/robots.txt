@@ -1,0 +1,13 @@
+# robots.txt for Embedded Map File Analyzer
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Disallow admin or private paths (if any)
+# Disallow: /admin/
+
+# Sitemap location
+Sitemap: https://embedded-map-analyzer.com/sitemap.xml
+
+# Crawl-delay (optional, for respectful crawling)
+Crawl-delay: 1

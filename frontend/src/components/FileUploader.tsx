@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Paper, Text, Group, FileButton, Button, Loader, Alert, Badge, LoadingOverlay, Title, Stack } from '@mantine/core';
 import { IconUpload, IconFileText, IconCheck } from '@tabler/icons-react';
 import type { AnalysisResult } from '../types/index';
+import { Analytics } from '../hooks/useAnalytics';
 
 interface FileUploaderProps {
   onAnalysisComplete: (result: AnalysisResult) => void;
@@ -30,6 +31,11 @@ export function FileUploader({ onAnalysisComplete, onFileSelect }: FileUploaderP
     // Notify parent that a new file has been selected
     if (newFile && onFileSelect) {
       onFileSelect();
+    }
+
+    // Track file upload
+    if (newFile) {
+      Analytics.trackFileUpload(newFile.size, newFile.type || 'map');
     }
   };
 

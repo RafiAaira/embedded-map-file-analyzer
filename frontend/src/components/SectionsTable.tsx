@@ -6,6 +6,7 @@ import Fuse from 'fuse.js';
 import type { Section } from '../types/index';
 import { aggregateSections } from '../utils/sectionUtils';
 import { getSectionColor } from '../utils/colorMapping';
+import { Analytics } from '../hooks/useAnalytics';
 
 interface SectionsTableProps {
   sections: Section[];
@@ -152,6 +153,9 @@ export function SectionsTable({ sections, selectedSection, onSectionClick, analy
     link.download = `memory-sections-${viewMode}-${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
     URL.revokeObjectURL(url);
+
+    // Track CSV export
+    Analytics.trackExport('csv', 'sections');
   };
 
   const exportToJSON = () => {
@@ -174,6 +178,9 @@ export function SectionsTable({ sections, selectedSection, onSectionClick, analy
     link.download = `memory-sections-${viewMode}-${new Date().toISOString().split('T')[0]}.json`;
     link.click();
     URL.revokeObjectURL(url);
+
+    // Track JSON export
+    Analytics.trackExport('json', 'sections');
   };
 
   return (

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useSearchParams } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import {
   MantineProvider,
   createTheme,
@@ -28,6 +29,9 @@ import { FadeIn } from './components/FadeIn';
 import { AdvancedCompare } from './components/AdvancedCompare';
 import { ComparisonReport } from './components/ComparisonReport';
 import { SingleAnalysisReport } from './components/SingleAnalysisReport';
+import { SEO, SEOPresets } from './components/SEO';
+import { LandingHero } from './components/LandingHero';
+import { usePageTracking, Analytics } from './hooks/useAnalytics';
 
 const theme = createTheme({
   primaryColor: 'grape',
@@ -67,6 +71,9 @@ function ThemeToggle() {
 function AppContent() {
   const [searchParams, setSearchParams] = useSearchParams();
 
+  // Initialize Google Analytics page tracking
+  usePageTracking();
+
   // Load result from sessionStorage on mount
   const [result, setResult] = useState<AnalysisResult | null>(() => {
     const saved = sessionStorage.getItem('analysisResult');
@@ -95,6 +102,8 @@ function AppContent() {
   useEffect(() => {
     if (activeTab) {
       setSearchParams({ tab: activeTab });
+      // Track tab change
+      Analytics.trackTabChange(activeTab);
     }
   }, [activeTab, setSearchParams]);
 
@@ -123,6 +132,10 @@ function AppContent() {
     setResult(data);
     setUseMockData(false);
     setSelectedSection(null); // Clear any selected section
+
+    // Track analysis completion
+    const totalSize = data.sections.reduce((sum, s) => sum + s.size, 0);
+    Analytics.trackAnalysis(data.sections.length, totalSize);
   };
 
   const handleMockDataToggle = (checked: boolean) => {
@@ -135,22 +148,43 @@ function AppContent() {
       setResult(null);
       sessionStorage.removeItem('analysisResult'); // Clear persisted result
     }
+
+    // Track mock data toggle
+    Analytics.trackMockDataToggle(checked);
   };
 
   const handleSectionClick = (sectionName: string) => {
     setSelectedSection(prev => prev === sectionName ? null : sectionName);
+
+    // Track section click
+    Analytics.trackSectionClick(sectionName);
   };
 
   const handleDiffComplete = (result: DiffResult) => {
     setDiffResult(result);
+
+    // Track comparison completion
+    const build1Size = result.build1.sections.reduce((sum, s) => sum + s.size, 0);
+    const build2Size = result.build2.sections.reduce((sum, s) => sum + s.size, 0);
+    const sizeDiff = build2Size - build1Size;
+    Analytics.trackComparison(build1Size, build2Size, sizeDiff);
   };
 
   const displayResult = useMockData ? mockAnalysisResult : result;
 
+  // Determine SEO based on active tab
+  const getSEOProps = () => {
+    if (activeTab === 'analyze') return SEOPresets.analyze;
+    if (activeTab === 'compare') return SEOPresets.compare;
+    return SEOPresets.home;
+  };
+
   return (
-    <Box style={{ minHeight: '100vh', width: '100%' }} py="xl">
-      <Container size="xl" px={{ base: 'md', sm: 'xl' }} style={{ maxWidth: '1600px' }}>
-        <Stack gap="xl">
+    <>
+      <SEO {...getSEOProps()} />
+      <Box style={{ minHeight: '100vh', width: '100%' }} py="xl">
+        <Container size="xl" px={{ base: 'md', sm: 'xl' }} style={{ maxWidth: '1600px' }}>
+          <Stack gap="xl">
           {/* Header */}
           <Center>
             <Stack gap="md" align="center">
@@ -238,20 +272,23 @@ function AppContent() {
         </Stack>
       </Container>
     </Box>
+    </>
   );
 }
 
 function App() {
   return (
-    <MantineProvider theme={theme} defaultColorScheme="auto">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<AppContent />} />
-          <Route path="/comparison-report" element={<ComparisonReport />} />
-          <Route path="/analysis-report" element={<SingleAnalysisReport />} />
-        </Routes>
-      </BrowserRouter>
-    </MantineProvider>
+    <HelmetProvider>
+      <MantineProvider theme={theme} defaultColorScheme="auto">
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<AppContent />} />
+            <Route path="/comparison-report" element={<ComparisonReport />} />
+            <Route path="/analysis-report" element={<SingleAnalysisReport />} />
+          </Routes>
+        </BrowserRouter>
+      </MantineProvider>
+    </HelmetProvider>
   );
 }
 
