@@ -49,6 +49,9 @@ export function FileUploader({ onAnalysisComplete, onFileSelect }: FileUploaderP
     const formData = new FormData();
     formData.append('mapFile', file);
 
+    // Start performance measurement
+    const startTime = performance.now();
+
     try {
       const response = await fetch('http://localhost:5000/analyze', {
         method: 'POST',
@@ -62,9 +65,15 @@ export function FileUploader({ onAnalysisComplete, onFileSelect }: FileUploaderP
 
       const data = await response.json();
 
+      // Calculate parse time
+      const parseTime = Math.round(performance.now() - startTime);
+
       if (!data.sections || data.sections.length === 0) {
         throw new Error('No sections found in the map file. The file may be empty or invalid.');
       }
+
+      // Track file analysis with performance metrics
+      Analytics.trackFileAnalysis(file.size, parseTime, data.sections.length);
 
       onAnalysisComplete(data);
       setSuccess(true);

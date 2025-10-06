@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { Paper, Text, Group, Card, RingProgress, Grid, Stack, Button } from '@mantine/core';
 import { IconCpu, IconDatabase, IconDownload } from '@tabler/icons-react';
 import type { AnalysisResult } from '../types/index';
+import { Analytics } from '../hooks/useAnalytics';
 
 interface MemorySummaryProps {
   result: AnalysisResult;
@@ -46,6 +47,9 @@ export function MemorySummary({ result, hideExportButton = false }: MemorySummar
   const summary = calculateMemoryUsage(result);
 
   const exportToPDF = () => {
+    // Track PDF export
+    Analytics.trackExport('pdf', 'memory_summary');
+
     // Navigate to report page with result in state
     navigate('/analysis-report', { state: { result } });
   };

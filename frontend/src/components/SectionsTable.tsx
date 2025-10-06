@@ -334,7 +334,11 @@ export function SectionsTable({ sections, selectedSection, onSectionClick, analy
                 return (
                   <Table.Tr
                     key={`${section.name}-${index}`}
-                    onClick={() => onSectionClick?.(section.name)}
+                    onClick={() => {
+                      onSectionClick?.(section.name);
+                      // Track section click with name, size, and region
+                      Analytics.trackSectionClick(section.name, section.size, section.region);
+                    }}
                     style={{
                       cursor: onSectionClick ? 'pointer' : 'default',
                       backgroundColor: isSelected ? 'rgba(155, 89, 182, 0.1)' : undefined,

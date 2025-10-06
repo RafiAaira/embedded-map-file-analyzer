@@ -83,11 +83,12 @@ export function initializeGA() {
  */
 export type AnalyticsEvent =
   | { name: 'file_upload'; params: { file_size?: number; file_type?: string } }
+  | { name: 'file_analysis'; params: { file_size?: number; parse_time_ms?: number; sections_count?: number } }
   | { name: 'comparison_done'; params: { build1_size?: number; build2_size?: number; size_diff?: number } }
   | { name: 'export_report'; params: { format: 'pdf' | 'csv' | 'json'; section?: string } }
   | { name: 'analysis_complete'; params: { sections_count?: number; total_size?: number } }
   | { name: 'tab_change'; params: { tab: string } }
-  | { name: 'section_clicked'; params: { section_name?: string } }
+  | { name: 'section_clicked'; params: { section_name?: string; section_size?: number; section_region?: string } }
   | { name: 'mock_data_toggled'; params: { enabled: boolean } }
   | { name: 'anomaly_detected'; params: { anomaly_type?: string; severity?: string } };
 
@@ -193,6 +194,20 @@ export const Analytics = {
   },
 
   /**
+   * Track file analysis with performance metrics
+   */
+  trackFileAnalysis(fileSize?: number, parseTimeMs?: number, sectionsCount?: number) {
+    trackEvent({
+      name: 'file_analysis',
+      params: {
+        file_size: fileSize,
+        parse_time_ms: parseTimeMs,
+        sections_count: sectionsCount,
+      },
+    });
+  },
+
+  /**
    * Track build comparison
    */
   trackComparison(build1Size?: number, build2Size?: number, sizeDiff?: number) {
@@ -237,12 +252,16 @@ export const Analytics = {
   },
 
   /**
-   * Track section click
+   * Track section click with details
    */
-  trackSectionClick(sectionName?: string) {
+  trackSectionClick(sectionName?: string, sectionSize?: number, sectionRegion?: string) {
     trackEvent({
       name: 'section_clicked',
-      params: { section_name: sectionName },
+      params: {
+        section_name: sectionName,
+        section_size: sectionSize,
+        section_region: sectionRegion,
+      },
     });
   },
 

@@ -4,6 +4,7 @@ import { Paper, Stack, Grid, Title, Text, FileButton, Button, Group, Badge, Numb
 import { IconUpload, IconFileText, IconArrowsShuffle, IconCheck, IconX, IconAlertTriangle, IconSearch, IconFilter, IconDownload, IconTrendingUp, IconTrendingDown, IconEqual, IconPlus, IconMinus } from '@tabler/icons-react';
 import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import type { DiffResult } from '../types/index';
+import { Analytics } from '../hooks/useAnalytics';
 
 interface AdvancedCompareProps {
   onDiffComplete: (result: DiffResult) => void;
@@ -129,6 +130,9 @@ export function AdvancedCompare({ onDiffComplete, diffResult: externalDiffResult
     a.download = `memory-diff-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+
+    // Track CSV export
+    Analytics.trackExport('csv', 'comparison');
   };
 
   const exportToJSON = () => {
@@ -142,10 +146,16 @@ export function AdvancedCompare({ onDiffComplete, diffResult: externalDiffResult
     a.download = `memory-diff-${new Date().toISOString().split('T')[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
+
+    // Track JSON export
+    Analytics.trackExport('json', 'comparison');
   };
 
   const exportToPDF = () => {
     if (!diffResult) return;
+
+    // Track PDF export
+    Analytics.trackExport('pdf', 'comparison');
 
     // Navigate to report page with diffResult in state
     navigate('/comparison-report', { state: { diffResult } });
