@@ -9,6 +9,14 @@ import ReactGA from 'react-ga4';
  * Automatically tracks page views when route changes.
  */
 
+// TypeScript declarations for gtag
+declare global {
+  interface Window {
+    dataLayer: any[];
+    gtag: (...args: any[]) => void;
+  }
+}
+
 // Initialize GA4 with Measurement ID from environment variable
 const GA_MEASUREMENT_ID = import.meta.env.VITE_GA_MEASUREMENT_ID;
 const IS_PRODUCTION = import.meta.env.PROD;
@@ -16,22 +24,56 @@ const IS_GA_ENABLED = GA_MEASUREMENT_ID && GA_MEASUREMENT_ID !== 'G-XXXXXXXXXX';
 
 // Initialize GA4 once
 let isInitialized = false;
+let isScriptLoaded = false;
+
+// Dynamically load gtag.js script
+function loadGtagScript(measurementId: string): Promise<void> {
+  if (isScriptLoaded) return Promise.resolve();
+
+  return new Promise((resolve, reject) => {
+    // Add gtag.js script
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
+    script.onload = () => {
+      isScriptLoaded = true;
+
+      // Initialize dataLayer
+      window.dataLayer = window.dataLayer || [];
+      function gtag(...args: any[]) {
+        window.dataLayer.push(args);
+      }
+      (window as any).gtag = gtag;
+
+      gtag('js', new Date());
+      gtag('config', measurementId, {
+        send_page_view: false, // Let React handle page views
+      });
+
+      resolve();
+    };
+    script.onerror = () => reject(new Error('Failed to load gtag.js'));
+
+    document.head.appendChild(script);
+  });
+}
 
 export function initializeGA() {
   if (isInitialized || !IS_GA_ENABLED) return;
 
-  try {
-    ReactGA.initialize(GA_MEASUREMENT_ID, {
-      testMode: !IS_PRODUCTION, // Enable test mode in development
-      gtagOptions: {
-        send_page_view: false, // We'll handle page views manually
-      },
+  loadGtagScript(GA_MEASUREMENT_ID)
+    .then(() => {
+      ReactGA.initialize(GA_MEASUREMENT_ID, {
+        gtagOptions: {
+          send_page_view: false, // We'll handle page views manually
+        },
+      });
+      isInitialized = true;
+      console.log('✅ Google Analytics initialized:', GA_MEASUREMENT_ID);
+    })
+    .catch((error) => {
+      console.error('❌ Failed to initialize Google Analytics:', error);
     });
-    isInitialized = true;
-    console.log('✅ Google Analytics initialized:', GA_MEASUREMENT_ID);
-  } catch (error) {
-    console.error('❌ Failed to initialize Google Analytics:', error);
-  }
 }
 
 /**
