@@ -69,10 +69,12 @@ export function initializeGA() {
         },
       });
       isInitialized = true;
-      console.log('✅ Google Analytics initialized:', GA_MEASUREMENT_ID);
     })
     .catch((error) => {
-      console.error('❌ Failed to initialize Google Analytics:', error);
+      // Silently fail - don't expose analytics configuration
+      if (!IS_PRODUCTION) {
+        console.error('Failed to initialize analytics:', error);
+      }
     });
 }
 
@@ -94,15 +96,19 @@ export type AnalyticsEvent =
  */
 export function trackEvent(event: AnalyticsEvent) {
   if (!IS_GA_ENABLED) {
-    console.log('🔍 [Analytics - Dev Mode]', event.name, event.params);
+    if (!IS_PRODUCTION) {
+      console.log('[Analytics - Dev Mode]', event.name, event.params);
+    }
     return;
   }
 
   try {
     ReactGA.event(event.name, event.params);
-    console.log('📊 Event tracked:', event.name, event.params);
   } catch (error) {
-    console.error('❌ Failed to track event:', error);
+    // Silently fail in production
+    if (!IS_PRODUCTION) {
+      console.error('Failed to track event:', error);
+    }
   }
 }
 
@@ -111,7 +117,9 @@ export function trackEvent(event: AnalyticsEvent) {
  */
 export function trackPageView(path: string, title?: string) {
   if (!IS_GA_ENABLED) {
-    console.log('🔍 [Analytics - Dev Mode] Page view:', path, title);
+    if (!IS_PRODUCTION) {
+      console.log('[Analytics - Dev Mode] Page view:', path, title);
+    }
     return;
   }
 
@@ -121,9 +129,11 @@ export function trackPageView(path: string, title?: string) {
       page: path,
       title: title || document.title,
     });
-    console.log('📄 Page view tracked:', path);
   } catch (error) {
-    console.error('❌ Failed to track page view:', error);
+    // Silently fail in production
+    if (!IS_PRODUCTION) {
+      console.error('Failed to track page view:', error);
+    }
   }
 }
 
