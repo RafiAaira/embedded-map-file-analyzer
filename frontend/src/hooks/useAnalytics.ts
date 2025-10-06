@@ -59,7 +59,23 @@ function loadGtagScript(measurementId: string): Promise<void> {
 }
 
 export function initializeGA() {
-  if (isInitialized || !IS_GA_ENABLED) return;
+  if (isInitialized) {
+    if (!IS_PRODUCTION) {
+      console.log('📊 [Analytics] Already initialized');
+    }
+    return;
+  }
+
+  if (!IS_GA_ENABLED) {
+    if (!IS_PRODUCTION) {
+      console.warn('⚠️ [Analytics] GA not enabled - VITE_GA_MEASUREMENT_ID:', GA_MEASUREMENT_ID);
+    }
+    return;
+  }
+
+  if (!IS_PRODUCTION) {
+    console.log('📊 [Analytics] Initializing GA4...');
+  }
 
   loadGtagScript(GA_MEASUREMENT_ID)
     .then(() => {
@@ -69,11 +85,14 @@ export function initializeGA() {
         },
       });
       isInitialized = true;
+      if (!IS_PRODUCTION) {
+        console.log('✅ [Analytics] GA4 initialized successfully');
+      }
     })
     .catch((error) => {
       // Silently fail - don't expose analytics configuration
       if (!IS_PRODUCTION) {
-        console.error('Failed to initialize analytics:', error);
+        console.error('❌ [Analytics] Failed to initialize:', error);
       }
     });
 }
@@ -96,19 +115,27 @@ export type AnalyticsEvent =
  * Track a custom event
  */
 export function trackEvent(event: AnalyticsEvent) {
+  // Always log in development for debugging
+  if (!IS_PRODUCTION) {
+    console.log('📊 [Analytics]', event.name, event.params);
+  }
+
   if (!IS_GA_ENABLED) {
     if (!IS_PRODUCTION) {
-      console.log('[Analytics - Dev Mode]', event.name, event.params);
+      console.warn('⚠️ [Analytics] GA not enabled - event not sent to GA4');
     }
     return;
   }
 
   try {
     ReactGA.event(event.name, event.params);
+    if (!IS_PRODUCTION) {
+      console.log('✅ [Analytics] Event sent to GA4');
+    }
   } catch (error) {
     // Silently fail in production
     if (!IS_PRODUCTION) {
-      console.error('Failed to track event:', error);
+      console.error('❌ [Analytics] Failed to track event:', error);
     }
   }
 }
