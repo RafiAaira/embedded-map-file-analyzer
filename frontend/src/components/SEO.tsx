@@ -15,7 +15,7 @@ export function SEO({
   description = 'Free online tool to analyze GCC linker map files, visualize firmware memory usage, compare builds, and detect size anomalies. Perfect for embedded systems developers working with ARM, AVR, and other microcontrollers.',
   keywords = 'GCC map file analyzer, linker map visualization, firmware memory analysis, embedded systems tools, build size comparison, memory usage analyzer, ARM microcontroller, flash memory analyzer, RAM usage tool, embedded development, IoT firmware tools, map file parser',
   image = '/og-image.png',
-  url = 'https://embedded-map-analyzer.com',
+  url = 'https://mapfileanalyzer.snapsuitapps.com',
   type = 'website',
   author = 'Embedded Map File Analyzer Team'
 }: SEOProps) {
