@@ -9,6 +9,13 @@ import ReactGA from 'react-ga4';
  * Automatically tracks page views when route changes.
  */
 
+// TypeScript declarations for gtag
+declare global {
+  interface Window {
+    gtag?: (...args: any[]) => void;
+  }
+}
+
 // Initialize GA4 with Measurement ID from environment variable
 const GA_MEASUREMENT_ID = import.meta.env.VITE_GA_MEASUREMENT_ID;
 const IS_PRODUCTION = import.meta.env.PROD;
@@ -80,9 +87,18 @@ export function trackEvent(event: AnalyticsEvent) {
   }
 
   try {
-    ReactGA.event(event.name, event.params);
-    if (!IS_PRODUCTION) {
-      console.log('✅ [Analytics] Event sent to GA4');
+    // Use gtag directly for better custom event support
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', event.name, event.params);
+      if (!IS_PRODUCTION) {
+        console.log('✅ [Analytics] Event sent to GA4 via gtag');
+      }
+    } else {
+      // Fallback to ReactGA
+      ReactGA.event(event.name, event.params);
+      if (!IS_PRODUCTION) {
+        console.log('✅ [Analytics] Event sent to GA4 via ReactGA');
+      }
     }
   } catch (error) {
     // Silently fail in production
